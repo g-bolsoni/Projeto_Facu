@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 // vamos importar a biblioteca para chamada de APIs em Rest
 import axios from 'axios'
 
-export default class TarefaForm extends Component {
+class TarefaForm extends Component {
     // construtor
     constructor(){
         // chama construtor da classe Component
@@ -21,6 +21,25 @@ export default class TarefaForm extends Component {
         //chamar funcção que busca as tarefas
         this.buscaTarefas()
     }
+     //Marcar como desfeita 
+     desFeita(tarefa){
+        axios.put(`http://localhost:3003/api/tarefas/${tarefa._id}`,{... tarefa, realizada:false})
+        .then(resp =>this.buscaTarefas())//Remove[]
+        
+    }
+    //Marcar como feita 
+    marcaFeita(tarefa){
+        axios.put(`http://localhost:3003/api/tarefas/${tarefa._id}`,{... tarefa, realizada:true})
+        .then(resp =>this.buscaTarefas())//Atualiza
+        
+    }
+    //REMOVER  TAREFA DO BANCO
+        //criar em ordem 
+    remover(){
+        axios.delete(`http://localhost:3003/api/tarefas/?sort=-createdAt`).then(resp =>{
+            this.buscaTarefas()
+        })
+    }
     //chama a função busca tarefa
     buscaTarefas(){
         axios.get(`http://localhost:3003/api/tarefas`).then(
@@ -33,14 +52,15 @@ export default class TarefaForm extends Component {
     criarLinhasTabela(){
         //vamos alimentar a tabela 
         return this.state.lista.map(cadaTarefa =>(
-            <tr>
+            <tr key={cadaTarefa._id}>
                 <td>{cadaTarefa.descricao}</td>
                 <td>{cadaTarefa.criadaEm}</td>
                 <td>{cadaTarefa.quem}</td>
                 <td>{cadaTarefa.onde}</td>
                 <td>{cadaTarefa.prioridade}</td>
-                <td><button type="button"className="btn btn-danger">Remove</button></td>
-                <td><button type="button"className="btn btn-success">Atualizar</button></td>
+                <td><button type="button"className="btn btn-danger"onClick={e=>this.remover(cadaTarefa)}>Remove</button></td>
+                <td><button className="btn btn-success" style={cadaTarefa.realizada ? {display: "none"} : null} onClick={e => this.marcaFeita(cadaTarefa)}>Finalizada</button></td> 
+                <td><button style={!cadaTarefa.realizada ? {display: "none"} : null}type="button"className="btn btn-warning"onClick={e=>this.desFeita(cadaTarefa)}>Desfeita</button></td>
 
 
             </tr>
@@ -83,8 +103,8 @@ export default class TarefaForm extends Component {
         // then -> quando a resposta do POST vier, vai executar ...
         axios.post(`http://localhost:3003/api/tarefas`, newTask ).then
             (resposta => console.log(`Funcionou ${resposta.data}`))
-    
-    }
+        this.buscaTarefas();
+    }   
 
     // o que será mostrado ao usuário
     render(){
@@ -146,3 +166,4 @@ export default class TarefaForm extends Component {
         )
     }
 }
+export default TarefaForm;
